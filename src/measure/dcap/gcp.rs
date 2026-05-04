@@ -100,29 +100,42 @@ pub fn build_rtmr1(hashes: &DcapImageHashes) -> Register<Sha384> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::measure::dcap::build_rtmr2;
+    use crate::measure::dcap::{build_rtmr2, measure as measure_dcap};
+    use crate::measure::uki::{Uki, UkiSection};
     use crate::platform_events::{firmware_mrtds, machine_configs};
 
-    /// Image hashes from a build of flashbox-l1
-    fn supplied_image_hashes() -> DcapImageHashes {
-        DcapImageHashes {
-            cmdline_hash: hex!(
-                "e03b89abf354a38976537b7a9138fd312e4cbf73b61eebc44086491701b1d167b9f6cb97a922325866c93e0834723d87"
-            ),
-            gpt_disk_guid_hash: hex!(
-                "a3a41b0f933aec447be266dec5f907c2b0ba89afbc3f4f7378f0dca844969cbfca324ed64f1720da6e9d4484fda4f9da"
-            ),
-            initrd_hash: hex!(
-                "305d9b8e2ce9b62bda924a990eed5234c8441882ba2cd603a427b1ac4180124bf1a49a4b49eae1796983ad608a4da666"
-            ),
-            kernel_authenticode: hex!(
-                "b6c5133268aa8b440509f3d53ee855a5cd3aeb6441eb109a9f27f14c43bce3e2383856df4af876501ceeb4c9a3b15f0c"
-            ),
-            uki_authenticode: hex!(
+    /// The result of calling `Uki::parse` on a flashbox-l1 image
+    fn supplied_uki() -> Uki {
+        Uki {
+                size: 244_081_152,
+            authenticode_sha384: hex!(
                 "9b678ccbad7fc2f3935e3e760cf8daedd6e3e3e5a327e72ee9473399b7effac6bb5590002ed73a53f6b3a97d296852e2"
             ),
+            authenticode_sha256: hex!(
+                "475800c5ae09e16c1d0722fa31dfbac6dc84d023ac006e6e810e1cb5e6573250"
+            ),
+            kernel_authenticode_sha384: hex!(
+                "b6c5133268aa8b440509f3d53ee855a5cd3aeb6441eb109a9f27f14c43bce3e2383856df4af876501ceeb4c9a3b15f0c"
+            ),
+            kernel_authenticode_sha256: hex!(
+                "4523f4d60818bfb93eec4d5b8d207707a03ab6794dab5e922cbfd571582425fa"
+            ),
+            cmdline: b"console=tty0 console=ttyS0,115200n8 mitigations=auto,nosmt spec_store_bypass_disable=on nospectre_v2 transparent_hugepage=madvise systemd.unit=minimal.target".to_vec(),
+            sections: vec![UkiSection {
+                name: ".initrd".to_string(),
+                size: 225_582_222,
+                digest_sha256: hex!(
+                    "671be83af1509f57db52eedd0a91ba8c20bc1f272a29e35e68f82c2ea7d883e4"
+                ),
+                digest_sha384: hex!(
+                    "305d9b8e2ce9b62bda924a990eed5234c8441882ba2cd603a427b1ac4180124bf1a49a4b49eae1796983ad608a4da666"
+                ),
+                measured: true,
+                measure_order: 3,
+            }],
         }
     }
+
     /// Register values observed on a GCP deployment with that image
     const OBSERVED_MRTD: [u8; 48] = hex!(
         "feb7486608382c1ff0e15b4648ddc0acea6ca974eb53e3529f4c4bd5ffbaa20bf335cb75965cea65fe473aed9647c162"
@@ -136,6 +149,7 @@ mod tests {
     const OBSERVED_RTMR2: [u8; 48] = hex!(
         "4ae34b6b64c2a618c7ee61f488219fcd8383d149ad7e44606616598d73bd3f7a2f20846d780463278715433d9813af2c"
     );
+
     /// SHA384 hash of GCP OVMF firmware associated with observed MRTD
     const OBSERVED_CFV_IMAGE_HASH: [u8; 48] = hex!(
         "9cb6bf09aea7b4acb8549e328d0edd6f15defc0b00d744bb9fb5bab0962bc5c70f69d233e96dbc7c1105ba085781dc88"
@@ -150,8 +164,40 @@ mod tests {
     }
 
     #[test]
-    fn builds_image_dependent_registers_from_supplied_hashes() {
-        let hashes = supplied_image_hashes();
+    fn builds_image_dependent_registers_from_supplied_uki() {
+        let uki = supplied_uki();
+        let hashes = measure_dcap(&uki);
+
+        assert_eq!(
+            hashes.gpt_disk_guid_hash,
+            hex!(
+                "a3a41b0f933aec447be266dec5f907c2b0ba89afbc3f4f7378f0dca844969cbfca324ed64f1720da6e9d4484fda4f9da"
+            )
+        );
+        assert_eq!(
+            hashes.cmdline_hash,
+            hex!(
+                "e03b89abf354a38976537b7a9138fd312e4cbf73b61eebc44086491701b1d167b9f6cb97a922325866c93e0834723d87"
+            )
+        );
+        assert_eq!(
+            hashes.initrd_hash,
+            hex!(
+                "305d9b8e2ce9b62bda924a990eed5234c8441882ba2cd603a427b1ac4180124bf1a49a4b49eae1796983ad608a4da666"
+            )
+        );
+        assert_eq!(
+            hashes.kernel_authenticode,
+            hex!(
+                "b6c5133268aa8b440509f3d53ee855a5cd3aeb6441eb109a9f27f14c43bce3e2383856df4af876501ceeb4c9a3b15f0c"
+            )
+        );
+        assert_eq!(
+            hashes.uki_authenticode,
+            hex!(
+                "9b678ccbad7fc2f3935e3e760cf8daedd6e3e3e5a327e72ee9473399b7effac6bb5590002ed73a53f6b3a97d296852e2"
+            )
+        );
 
         assert_eq!(build_rtmr1(&hashes).value(), OBSERVED_RTMR1);
         assert_eq!(build_rtmr2(&hashes).value(), OBSERVED_RTMR2);
