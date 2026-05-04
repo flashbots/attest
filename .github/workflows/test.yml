@@ -1,0 +1,28 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  build_and_test:
+    name: "CI: Build & Test"
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v31
+      with:
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+
+    - name: Check formatting
+      run: nix develop --command cargo fmt --all -- --check
+
+    - name: Run cargo clippy
+      run: nix develop --command cargo clippy --workspace --features azure -- -D warnings
+
+    - name: Run cargo test
+      run: nix develop --command cargo test --workspace --features azure --all-targets
