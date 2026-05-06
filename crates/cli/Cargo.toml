@@ -1,0 +1,28 @@
+[package]
+name = "attest-cli"
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+description = "CLI for TEE attestation measurement, generation, and verification"
+repository = "https://github.com/flashbots/attest"
+
+[[bin]]
+name = "attest"
+path = "src/main.rs"
+
+[features]
+default = ["verify"]
+verify = ["dep:verify"]
+prove = ["dep:prove"]
+
+[dependencies]
+measure = { workspace = true }
+verify = { workspace = true, optional = true }
+prove = { workspace = true, optional = true }
+
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+[lints]
+workspace = true

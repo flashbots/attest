@@ -3,8 +3,10 @@
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
-use super::event::{CALLING_EFI_APP, Register, SEPARATOR};
-use super::uki::{Uki, to_utf16le_null_terminated};
+use super::{
+    event::{CALLING_EFI_APP, Register, SEPARATOR},
+    uki::{Uki, to_utf16le_null_terminated},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AzureRegisters {
@@ -25,11 +27,7 @@ impl AzureRegisters {
 }
 
 pub fn measure(uki: &Uki) -> AzureRegisters {
-    AzureRegisters {
-        pcr4: measure_pcr4(uki),
-        pcr9: measure_pcr9(uki),
-        pcr11: measure_pcr11(uki),
-    }
+    AzureRegisters { pcr4: measure_pcr4(uki), pcr9: measure_pcr9(uki), pcr11: measure_pcr11(uki) }
 }
 
 /// PCR4: EV_EFI_ACTION + separator + UKI authenticode + kernel authenticode
@@ -45,10 +43,7 @@ fn measure_pcr4(uki: &Uki) -> Register<Sha256> {
 /// PCR9: cmdline (UTF-16LE) + initrd
 fn measure_pcr9(uki: &Uki) -> Register<Sha256> {
     let mut pcr = Register::new();
-    pcr.extend(
-        &to_utf16le_null_terminated(&uki.cmdline),
-        "cmdline (UTF-16LE)",
-    );
+    pcr.extend(&to_utf16le_null_terminated(&uki.cmdline), "cmdline (UTF-16LE)");
     if let Some(initrd) = uki.section(".initrd") {
         pcr.extend_raw(initrd.digest_sha256, "initrd");
     }
@@ -62,10 +57,7 @@ fn measure_pcr11(uki: &Uki) -> Register<Sha256> {
         if !section.measured {
             continue;
         }
-        pcr.extend(
-            &section.null_terminated_name(),
-            format!("{} (name)", section.name),
-        );
+        pcr.extend(&section.null_terminated_name(), format!("{} (name)", section.name));
         pcr.extend_raw(section.digest_sha256, format!("{} (content)", section.name));
     }
     pcr

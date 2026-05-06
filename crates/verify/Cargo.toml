@@ -1,0 +1,12 @@
+[package]
+name = "attest-verify"
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+description = "TEE attestation evidence verification"
+repository = "https://github.com/flashbots/attest"
+
+[dependencies]
+
+[lints]
+workspace = true

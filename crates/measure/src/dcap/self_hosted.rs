@@ -4,10 +4,10 @@ use anyhow::Result;
 use sha2::Sha384;
 
 use super::{DcapImageHashes, DcapRegisters};
-use crate::measure::event::{
-    CALLING_EFI_APP, EXIT_BOOT_SERVICES, EXIT_BOOT_SERVICES_SUCCESS, Register, SEPARATOR,
+use crate::{
+    event::{CALLING_EFI_APP, EXIT_BOOT_SERVICES, EXIT_BOOT_SERVICES_SUCCESS, Register, SEPARATOR},
+    types::PlatformMetadata,
 };
-use crate::types::PlatformMetadata;
 
 /// Full self-hosted TDX measurement
 pub fn measure(

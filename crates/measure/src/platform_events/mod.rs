@@ -58,7 +58,8 @@ pub fn firmware_mrtds() -> &'static [FirmwareMrtd] {
     })
 }
 
-/// Download an OVMF firmware blob from `gs://gce_tcb_integrity/ovmf_x64_csm`
+/// Download an OVMF firmware blob from
+/// `gs://gce_tcb_integrity/ovmf_x64_csm`
 pub fn fetch_firmware(file_hash: &[u8; 48]) -> Result<Vec<u8>> {
     let url = format!("{FIRMWARE_BUCKET}/{}.fd", hex::encode(file_hash));
     let resp = reqwest::blocking::get(&url).with_context(|| format!("download firmware {url}"))?;

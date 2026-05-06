@@ -1,4 +1,5 @@
-//! Shared types and helpers for DCAP-based platforms (GCP, self-hosted, etc)
+//! Shared types and helpers for DCAP-based platforms (GCP, self-hosted,
+//! etc)
 
 pub mod gcp;
 pub mod self_hosted;
@@ -10,11 +11,14 @@ use serde::{Deserialize, Serialize};
 use serde_with::hex::Hex;
 use sha2::{Digest, Sha384};
 
-use super::event::Register;
-use super::uki::{Uki, to_utf16le_null_terminated};
+use super::{
+    event::Register,
+    uki::{Uki, to_utf16le_null_terminated},
+};
 
 /// Portable image-specific hashes for DCAP platforms
-/// The verifier combines these with platform events at runtime to reconstruct RTMRs
+/// The verifier combines these with platform events at runtime to
+/// reconstruct RTMRs
 #[serde_with::apply([u8; 48] => #[serde_as(as = "Hex")])]
 #[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,7 +31,8 @@ pub struct DcapImageHashes {
 }
 
 /// Full DCAP register values (GCP or self-hosted)
-/// RTMRs are `Vec`s to support multiple valid values (e.g. GCP firmware variants)
+/// RTMRs are `Vec`s to support multiple valid values (e.g. GCP firmware
+/// variants)
 #[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DcapRegisters {
@@ -59,10 +64,7 @@ pub fn measure(uki: &Uki) -> DcapImageHashes {
         uki_authenticode: uki.authenticode_sha384,
         kernel_authenticode: uki.kernel_authenticode_sha384,
         cmdline_hash: sha384(&to_utf16le_null_terminated(&uki.cmdline)),
-        initrd_hash: uki
-            .section(".initrd")
-            .expect("UKI missing .initrd section")
-            .digest_sha384,
+        initrd_hash: uki.section(".initrd").expect("UKI missing .initrd section").digest_sha384,
         gpt_disk_guid_hash: gpt::disk_guid_hash(uki.size),
     }
 }

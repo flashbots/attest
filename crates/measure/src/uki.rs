@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use authenticode::authenticode_digest;
-use object::read::pe::PeFile64;
-use object::{Object, ObjectSection};
+use object::{Object, ObjectSection, read::pe::PeFile64};
 use sha2::{Digest, Sha256, Sha384};
 
 /// Parsed UKI with pre-computed digests
@@ -25,9 +24,8 @@ pub struct UkiSection {
 }
 
 /// Sections measured by systemd-stub, in order
-const UKI_MEASURED_SECTIONS: &[&str] = &[
-    ".linux", ".osrel", ".cmdline", ".initrd", ".splash", ".dtb", ".uname", ".sbat", ".pcrkey",
-];
+const UKI_MEASURED_SECTIONS: &[&str] =
+    &[".linux", ".osrel", ".cmdline", ".initrd", ".splash", ".dtb", ".uname", ".sbat", ".pcrkey"];
 
 impl Uki {
     pub fn parse(data: &[u8]) -> Result<Self> {
@@ -65,13 +63,7 @@ impl Uki {
             });
         }
 
-        sections.sort_by_key(|s| {
-            if s.measured {
-                s.measure_order
-            } else {
-                i32::MAX
-            }
-        });
+        sections.sort_by_key(|s| if s.measured { s.measure_order } else { i32::MAX });
 
         Ok(Uki {
             size: data.len() as u64,
@@ -101,11 +93,7 @@ impl UkiSection {
 }
 
 pub fn to_utf16le_null_terminated(input: &[u8]) -> Vec<u8> {
-    let s = if input.last() == Some(&0) {
-        &input[..input.len() - 1]
-    } else {
-        input
-    };
+    let s = if input.last() == Some(&0) { &input[..input.len() - 1] } else { input };
     let text = String::from_utf8_lossy(s);
     let mut out: Vec<u8> = text.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
     // null terminator

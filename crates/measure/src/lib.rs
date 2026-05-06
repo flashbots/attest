@@ -1,13 +1,13 @@
 pub mod azure;
 pub mod dcap;
 pub mod event;
+pub mod platform_events;
+pub mod types;
 pub mod uki;
 
 use serde::{Deserialize, Serialize};
 
-use self::azure::AzureRegisters;
-use self::dcap::DcapImageHashes;
-use self::uki::Uki;
+use self::{azure::AzureRegisters, dcap::DcapImageHashes, uki::Uki};
 
 /// Default output of the `measure` command
 /// Contains the image-dependent DCAP event hashes and the final Azure PCRs
@@ -20,8 +20,5 @@ pub struct PortableMeasurements {
 /// Produces a portable measurement from a UKI file
 pub fn measure(uki_data: &[u8]) -> anyhow::Result<PortableMeasurements> {
     let uki = Uki::parse(uki_data)?;
-    Ok(PortableMeasurements {
-        azure: azure::measure(&uki),
-        dcap: dcap::measure(&uki),
-    })
+    Ok(PortableMeasurements { azure: azure::measure(&uki), dcap: dcap::measure(&uki) })
 }

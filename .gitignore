@@ -1,2 +1,23 @@
+# builds
+
+./debug/
+/crates/*/target
 /target
+
 **/*.rs.bk
+
+# ide
+
+.devcontainer
+.idea
+.vscode
+*.code-workspace
+
+# runtime
+
+.envrc
+.direnv/
+
+# temporary files
+
+.temp

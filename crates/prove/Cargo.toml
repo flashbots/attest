@@ -1,0 +1,12 @@
+[package]
+name = "attest-prove"
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+description = "TEE attestation evidence generation"
+repository = "https://github.com/flashbots/attest"
+
+[dependencies]
+
+[lints]
+workspace = true

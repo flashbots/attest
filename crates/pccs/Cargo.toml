@@ -1,0 +1,12 @@
+[package]
+name = "attest-pccs"
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+description = "Provisioning Certificate Caching Service for Intel TDX"
+repository = "https://github.com/flashbots/attest"
+
+[dependencies]
+
+[lints]
+workspace = true

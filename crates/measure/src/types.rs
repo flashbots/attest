@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use parity_scale_codec::{Decode, Encode};
 use serde::{Deserialize, Serialize};
@@ -67,7 +66,8 @@ pub enum Measurements {
 }
 
 /// Hardware params reported by the TEE. The verifier uses these
-/// to find the matching platform events (e.g. 4 vcpus + 16Gb RAM -> c3-standard-4)
+/// to find the matching platform events (e.g. 4 vcpus + 16Gb RAM ->
+/// c3-standard-4)
 #[derive(Debug, Clone, Serialize, Deserialize, Encode, Decode)]
 pub struct PlatformMetadata {
     pub vcpus: u32,

@@ -1,10 +1,9 @@
 //! Register accumulator for PCR/RTMR measurement construction.
 //!
-//! [`Register<H>`] applies sequential extend operations (value = H(value || hash))
-//! and records each step as a [`RegisterEvent`] for debug inspection
+//! [`Register<H>`] applies sequential extend operations (value = H(value ||
+//! hash)) and records each step as a [`RegisterEvent`] for debug inspection
 
-use std::fmt;
-use std::marker::PhantomData;
+use std::{fmt, marker::PhantomData};
 
 use serde::{Deserialize, Serialize};
 use serde_with::{hex::Hex, serde_as};
@@ -64,21 +63,13 @@ pub struct Register<H: HashAlg> {
 
 impl<H: HashAlg> Default for Register<H> {
     fn default() -> Self {
-        Self {
-            value: H::zero(),
-            events: Vec::new(),
-            _h: PhantomData,
-        }
+        Self { value: H::zero(), events: Vec::new(), _h: PhantomData }
     }
 }
 
 impl<H: HashAlg> Clone for Register<H> {
     fn clone(&self) -> Self {
-        Self {
-            value: self.value,
-            events: self.events.clone(),
-            _h: PhantomData,
-        }
+        Self { value: self.value, events: self.events.clone(), _h: PhantomData }
     }
 }
 
@@ -93,7 +84,8 @@ impl<H: HashAlg> Register<H> {
         Self::default()
     }
 
-    /// Extend with a pre-computed hash (e.g. a [`UkiSection`](super::uki::UkiSection) digest)
+    /// Extend with a pre-computed hash (e.g. a
+    /// [`UkiSection`](super::uki::UkiSection) digest)
     pub fn extend_raw(&mut self, hash: H::Array, description: impl Into<String>) -> &mut Self {
         let mut h = H::default();
         h.update(self.value.as_ref());
@@ -106,8 +98,9 @@ impl<H: HashAlg> Register<H> {
         self
     }
 
-    /// Hash `data` with `H`, then extend. Use for byte strings and inline data
-    /// (e.g. [`CALLING_EFI_APP`], [`SEPARATOR`], section names, cmdline bytes)
+    /// Hash `data` with `H`, then extend. Use for byte strings and inline
+    /// data (e.g. [`CALLING_EFI_APP`], [`SEPARATOR`], section names,
+    /// cmdline bytes)
     pub fn extend(&mut self, data: &[u8], description: impl Into<String>) -> &mut Self {
         let hash = H::into_array(H::default().chain_update(data));
         self.extend_raw(hash, description)
@@ -134,7 +127,8 @@ impl<H: HashAlg> Register<H> {
     }
 }
 
-/// Serializes as a hex string (same wire format as `[u8; N]` with `serde_as(Hex)`)
+/// Serializes as a hex string (same wire format as `[u8; N]` with
+/// `serde_as(Hex)`)
 impl<H: HashAlg> Serialize for Register<H> {
     fn serialize<S: serde::Serializer>(&self, ser: S) -> Result<S::Ok, S::Error> {
         hex::encode(self.value.as_ref()).serialize(ser)
@@ -156,10 +150,6 @@ impl<'de, H: HashAlg> Deserialize<'de> for Register<H> {
             )));
         }
         slice.copy_from_slice(&bytes);
-        Ok(Self {
-            value: arr,
-            events: Vec::new(),
-            _h: PhantomData,
-        })
+        Ok(Self { value: arr, events: Vec::new(), _h: PhantomData })
     }
 }

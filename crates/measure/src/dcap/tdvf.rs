@@ -12,7 +12,8 @@ use sha2::{Digest, Sha384};
 const FW_GUID_TABLE_OFFSET_FROM_END: usize = 0x20;
 const FW_GUID_ENTRY_SIZE: usize = 18; // u16 size + 16-byte GUID
 
-/// GUID identifying the TDX metadata offset entry in the firmware footer table
+/// GUID identifying the TDX metadata offset entry in the firmware footer
+/// table
 const TDX_METADATA_OFFSET_GUID: &str = "e47a6535-984a-4798-865e-4685a7bf8ec2";
 
 const SECTION_TYPE_CFV: u32 = 1;
@@ -31,16 +32,9 @@ fn configuration_firmware_volume(fw: &[u8]) -> Result<&[u8]> {
         .find(|s| s.kind == SECTION_TYPE_CFV)
         .context("no CFV section (type 1) in TDX metadata")?;
     let base = cfv.image_offset as usize;
-    let end = base
-        .checked_add(cfv.raw_data_size as usize)
-        .context("CFV section size overflow")?;
+    let end = base.checked_add(cfv.raw_data_size as usize).context("CFV section size overflow")?;
     if end > fw.len() {
-        bail!(
-            "CFV section out of bounds: {}..{} of {}",
-            base,
-            end,
-            fw.len()
-        );
+        bail!("CFV section out of bounds: {}..{} of {}", base, end, fw.len());
     }
     Ok(&fw[base..end])
 }
@@ -55,22 +49,20 @@ struct Section {
 fn tdx_metadata_sections(fw: &[u8]) -> Result<Vec<Section>> {
     let offset = tdx_metadata_offset(fw)?;
     if offset > fw.len() {
-        bail!(
-            "TDX metadata offset {} > firmware size {}",
-            offset,
-            fw.len()
-        );
+        bail!("TDX metadata offset {} > firmware size {}", offset, fw.len());
     }
     let mut cursor = &fw[fw.len() - offset..];
 
-    // descriptor: signature(4) + length(4) + version(4) + num_sections(4) = 16 bytes
+    // descriptor: signature(4) + length(4) + version(4) + num_sections(4) = 16
+    // bytes
     if cursor.len() < 16 {
         bail!("firmware too small for TDX metadata descriptor");
     }
     let num_sections = u32::from_le_bytes(cursor[12..16].try_into().unwrap());
     cursor = &cursor[16..];
 
-    // section: image_offset(4) + raw_data_size(4) + memory_address(8) + memory_size(8) + type(4) + attributes(4) = 32 bytes
+    // section: image_offset(4) + raw_data_size(4) + memory_address(8) +
+    // memory_size(8) + type(4) + attributes(4) = 32 bytes
     let mut sections = Vec::with_capacity(num_sections as usize);
     for _ in 0..num_sections {
         if cursor.len() < 32 {
@@ -97,7 +89,8 @@ fn tdx_metadata_offset(fw: &[u8]) -> Result<usize> {
     Ok(u32::from_le_bytes(entry[..4].try_into().unwrap()) as usize)
 }
 
-/// Scans the firmware footer GUID table backward to build a map of GUID -> data bytes
+/// Scans the firmware footer GUID table backward to build a map of GUID ->
+/// data bytes
 fn parse_guid_map(fw: &[u8]) -> Result<HashMap<String, Vec<u8>>> {
     let table = parse_guid_table(fw)?;
     let mut map = HashMap::new();
@@ -106,18 +99,11 @@ fn parse_guid_map(fw: &[u8]) -> Result<HashMap<String, Vec<u8>>> {
         let entry = last_entry(remaining)?;
         let entry_size = entry.size as usize;
         if remaining.len() < entry_size {
-            bail!(
-                "table entry size {} > remaining table {}",
-                entry_size,
-                remaining.len()
-            );
+            bail!("table entry size {} > remaining table {}", entry_size, remaining.len());
         }
         let entry_start = remaining.len() - entry_size;
         let data_end = remaining.len() - FW_GUID_ENTRY_SIZE;
-        map.insert(
-            entry.guid_string(),
-            remaining[entry_start..data_end].to_vec(),
-        );
+        map.insert(entry.guid_string(), remaining[entry_start..data_end].to_vec());
         remaining = &remaining[..entry_start];
     }
     Ok(map)
@@ -131,11 +117,7 @@ fn parse_guid_table(fw: &[u8]) -> Result<&[u8]> {
     let anchor = last_entry(trimmed)?;
     let table_size = anchor.size as usize;
     if trimmed.len() < table_size {
-        bail!(
-            "GUID table size {} > firmware {}",
-            table_size,
-            trimmed.len()
-        );
+        bail!("GUID table size {} > firmware {}", table_size, trimmed.len());
     }
     let start = trimmed.len() - table_size;
     let end = trimmed.len() - FW_GUID_ENTRY_SIZE;
@@ -171,11 +153,7 @@ impl Entry {
 
 fn last_entry(table: &[u8]) -> Result<Entry> {
     if table.len() < FW_GUID_ENTRY_SIZE {
-        bail!(
-            "table too small for entry: {} < {}",
-            table.len(),
-            FW_GUID_ENTRY_SIZE
-        );
+        bail!("table too small for entry: {} < {}", table.len(), FW_GUID_ENTRY_SIZE);
     }
     let entry_start = table.len() - FW_GUID_ENTRY_SIZE;
     let data = &table[entry_start..];
