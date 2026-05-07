@@ -2,9 +2,9 @@ use az_tdx_vtpm::{hcl, vtpm};
 use openssl::error::ErrorStack;
 use thiserror::Error;
 
-/// An error when generating or verifying a Microsoft Azure vTPM attestation
+/// An error when verifying a Microsoft Azure vTPM attestation
 #[derive(Error, Debug)]
-pub enum MaaError {
+pub enum AzureError {
     #[error("HCL: {0}")]
     Hcl(#[from] hcl::HclError),
     #[error("JSON: {0}")]
@@ -15,13 +15,13 @@ pub enum MaaError {
     AkPub(#[from] vtpm::AKPubError),
     #[error("vTPM quote could not be verified: {0}")]
     TpmQuoteVerify(#[from] vtpm::VerifyError),
-    #[error("PEM encode: {0}")]
+    #[error("PEM: {0}")]
     Pem(#[from] pem_rfc7468::Error),
     #[error("TD report input does not match hashed HCL var data")]
     TdReportInputMismatch,
-    #[error("Base64 decode: {0}")]
+    #[error("Base64: {0}")]
     Base64(#[from] base64::DecodeError),
-    #[error("Hex decode: {0}")]
+    #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
     #[error("Attestation Key from HCL runtime claims does not match that from HCL report")]
     AkFromClaimsNotEqualAkFromHcl,
@@ -49,8 +49,6 @@ pub enum MaaError {
     ClaimsMissingUserData,
     #[error("HCL runtime claims user-data must decode to exactly 64 bytes")]
     ClaimsUserDataBadLength,
-    #[error("HCL runtime claims user-data does not match expected report input data")]
-    ClaimsUserDataInputMismatch,
-    #[error("DCAP verification: {0}")]
-    DcapVerification(#[from] crate::dcap::DcapVerificationError),
+    #[error("DCAP: {0}")]
+    Dcap(#[from] crate::dcap::DcapError),
 }

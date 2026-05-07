@@ -5,8 +5,47 @@ edition = "2024"
 license = "MIT"
 description = "TEE attestation evidence verification"
 repository = "https://github.com/flashbots/attest"
+keywords = ["attestation", "CVM", "TDX"]
 
 [dependencies]
+types = { workspace = true }
+measure = { workspace = true }
+pccs = { workspace = true }
+
+anyhow = "1"
+dcap-qvl = { workspace = true }
+hex = "0.4"
+thiserror = "2"
+
+# Used for azure vTPM attestation verification support
+az-tdx-vtpm = { version = "0.7.4", optional = true }
+base64 = { version = "0.22.1", optional = true }
+num-bigint = { version = "0.4.6", optional = true }
+once_cell = { version = "1.21.3", optional = true }
+openssl = { version = "0.10.78", optional = true }
+pem-rfc7468 = { version = "0.7.0", features = ["std"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+rustls-pki-types = { version = "1.13.0", optional = true }
+webpki = { package = "rustls-webpki", version = "0.103.10", optional = true }
+x509-parser = { version = "0.18.0", optional = true }
+
+[features]
+default = ["azure"]
+azure = [
+    "az-tdx-vtpm",
+    "base64",
+    "dcap-qvl/danger-allow-tcb-override",
+    "num-bigint",
+    "once_cell",
+    "openssl",
+    "pem-rfc7468",
+    "rustls-pki-types",
+    "serde",
+    "serde_json",
+    "webpki",
+    "x509-parser",
+]
 
 [lints]
 workspace = true
