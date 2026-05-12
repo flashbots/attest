@@ -3,6 +3,7 @@
 
 pub mod gcp;
 pub mod self_hosted;
+pub mod td_hob;
 
 mod gpt;
 #[allow(dead_code)]
