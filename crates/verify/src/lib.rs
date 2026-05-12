@@ -34,7 +34,7 @@ pub fn verify_at(
 ) -> Result<[u8; 64], VerifyError> {
     match (expected, evidence.platform.attestation_type) {
         (MeasurementOutput::Portable(p), AttestationType::GcpTdx) => {
-            let expected_dcap = measure::dcap::gcp::measure(&p.dcap, &[])?.finalize();
+            let expected_dcap = measure::dcap::gcp::measure(&p.dcap).finalize();
             verify_dcap_at(&expected_dcap, &evidence.quote, pccs, time)
         }
         (MeasurementOutput::Portable(_), AttestationType::SelfHostedTdx) => {

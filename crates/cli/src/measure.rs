@@ -27,9 +27,6 @@ pub(crate) enum Target {
     Gcp {
         /// Image file to measure
         uki: PathBuf,
-        /// Restrict to specific machine configs (default: all)
-        #[arg(long = "config")]
-        configs: Vec<String>,
         #[arg(long)]
         debug: bool,
     },
@@ -60,9 +57,9 @@ pub(crate) fn run(target: Target) -> Result<()> {
         Target::Azure { uki, debug } => {
             emit(measure::azure::measure(&load_uki(&uki)?), debug, MeasurementOutput::Azure)?
         }
-        Target::Gcp { uki, configs, debug } => {
+        Target::Gcp { uki, debug } => {
             let hashes = measure::dcap::measure(&load_uki(&uki)?);
-            emit(measure::dcap::gcp::measure(&hashes, &configs)?, debug, MeasurementOutput::Dcap)?
+            emit(measure::dcap::gcp::measure(&hashes), debug, MeasurementOutput::Dcap)?
         }
         Target::SelfHosted { uki, firmware, ram, debug } => {
             let hashes = measure::dcap::measure(&load_uki(&uki)?);

@@ -1,6 +1,5 @@
 //! GCP TDX measurement
 
-use anyhow::Result;
 use hex_literal::hex;
 use sha2::Sha384;
 
@@ -33,8 +32,8 @@ pub fn boot_order_bytes(num_disks: u32) -> Vec<u8> {
 }
 
 /// GCP RTMR1 and RTMR2 measurements
-pub fn measure(hashes: &DcapImageHashes, _configs: &[String]) -> Result<DcapRegisters> {
-    Ok(DcapRegisters { rtmr1: build_rtmr1(hashes), rtmr2: build_rtmr2(hashes) })
+pub fn measure(hashes: &DcapImageHashes) -> DcapRegisters {
+    DcapRegisters { rtmr1: build_rtmr1(hashes), rtmr2: build_rtmr2(hashes) }
 }
 
 /// RTMR1: GCP-specific image measurements (depends on image)
