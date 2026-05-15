@@ -21,6 +21,10 @@ pub(crate) struct Args {
     /// PCCS URL (defaults to Intel PCS)
     #[arg(long)]
     pccs_url: Option<String>,
+
+    /// Print actual/expected register values on mismatch
+    #[arg(short, long)]
+    debug: bool,
 }
 
 pub(crate) fn run(args: Args) -> Result<()> {
@@ -34,7 +38,7 @@ pub(crate) fn run(args: Args) -> Result<()> {
         anyhow::Ok(pccs)
     })?;
 
-    let report_data = verify::verify(&expected, &evidence, &pccs)?;
+    let report_data = verify::verify(&expected, &evidence, &pccs, args.debug)?;
     println!("{}", hex::encode(report_data));
     Ok(())
 }
